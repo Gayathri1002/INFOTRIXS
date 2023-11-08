@@ -1,0 +1,87 @@
+Deploying Application in Monolithic Architecture
+
+**Step 1: Launch EC2 Instance**
+
+1. Launch an EC2 instance for WordPress and MySQL(Ubuntu):
+
+   - Choose an Ubuntu Server AMI.
+   - Configure the instance type (t2.micro) and network settings as needed.
+   - Create or choose an existing security group that allows HTTP and HTTPS traffic (port 80 and 443) for the instance.
+   
+
+**Step 2: Configure EC2 Instance**
+
+1. Open MobaXterm.
+2. Create an SSH session with your EC2 instance by entering the public IP address, username (e.g., ubuntu), and specifying your private key file.
+3. Connect to the session, and you can start configuring your EC2 Ubuntu instance via the terminal window in MobaXterm.
+
+
+**Step 3: Configure WordPress and MySQL on the EC2 Instance**
+
+1. Install Apache server on Ubuntu
+
+   ```bash
+   sudo apt-get update
+   sudo apt install apache2
+   ```
+   
+2. Install php runtime and php mysql connector
+
+   ```bash
+   sudo apt install php libapache2-mod-php php-mysql
+   ```
+
+3. Install MySQL server
+
+   ```bash
+   sudo apt install mysql-server
+   ```
+
+4. Login to MySQL server
+
+   ```bash
+   sudo mysql -u root
+   ```
+
+5. Change authentication plugin to mysql_native_password
+   Create a new database user for wordpress (change the password)
+   Create a database for wordpress
+   Grant all privilges on the database 'wordpress' to the newly created user
+   
+   ```bash
+   ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by 'Password';
+   CREATE USER 'wordpress-user'@localhost IDENTIFIED BY 'Password';
+   CREATE DATABASE wordpress;
+   GRANT ALL PRIVILEGES ON wp.* TO 'wordpress-user'@localhost;
+   EXIT;
+   ```
+
+6. Download and configure WordPress:
+
+   ```bash
+   cd /var/www/html
+   sudo wget https://wordpress.org/latest.zip
+   sudo apt install unzip
+   unzip tatest.zip
+   sudo mv wordpress/ /var/www/html
+   ```
+
+7. Edit the WordPress configuration file:
+
+   ```bash
+   sudo nano /var/www/html/wordpress/wp-config.php
+   ```
+
+
+**Step 4: Start the Services**
+
+  Start Apache on the WordPress EC2 instance:
+
+   ```bash
+   sudo systemctl start apache2
+   sudo systemctl enable apache2
+   ```
+
+**Step 5: Access WordPress**
+
+You can access your WordPress site by opening your web browser and navigating to the public IP address or domain name of your ubuntu EC2 instance.
