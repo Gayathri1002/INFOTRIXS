@@ -1,0 +1,111 @@
+
+**Step 1: Launch EC2 Instances**
+
+1. Launch an EC2 instance for WordPress (Ubuntu):
+
+   - Choose an Ubuntu Server AMI.
+   - Configure the instance type and network settings as needed.
+   - Create or choose an existing security group that allows HTTP and HTTPS traffic (port 80 and 443) for the WordPress instance.
+
+2. Launch a separate EC2 instance for MySQL (Ubuntu):
+
+   - Choose an Ubuntu Server AMI.
+   - Configure the instance type and network settings.
+   - Create or choose an existing security group that allows MySQL traffic (port 3306) only from the WordPress EC2 instance.
+
+**Step 2: Configure MySQL on the MySQL EC2 Instance**
+
+1. Connect to your MySQL EC2 instance using SSH and install MySQL Server:
+
+   ```bash
+   sudo apt-get update
+   sudo apt-get install mysql-server
+   ```
+
+2. Secure your MySQL installation and set the root password:
+
+   ```bash
+   sudo mysql_secure_installation
+   ```
+follow the steps yes or no 
+
+2.1 After this,we will have to make a few changes in the mysql configuration file
+
+     vi /etc/mysql/mysql.conf.d/mysqld.cnf
+
+We have to change the IP Address to the IP on which our server will be running.In case your IP is not static,you can provide bind-address=0.0.0.0
+
+3. Create a MySQL user and database for WordPress:
+
+   ```sql
+   mysql -u root -p
+   CREATE DATABASE wordpress;
+   CREATE USER 'wordpressuser'@'wordpress-ec2-public-ip' IDENTIFIED BY 'password';
+   GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpressuser'@'wordpress-ec2-public-ip';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+
+**Step 3: Configure WordPress on the WordPress EC2 Instance**
+
+1. Connect to your WordPress EC2 instance using SSH and install the required software:
+
+   ```bash
+   sudo apt-get update
+   sudo apt-get install apache2 php libapache2-mod-php php-mysql
+   ```
+
+2. Download and configure WordPress:
+
+   ```bash
+   cd /var/www/html
+   sudo wget https://wordpress.org/latest.tar.gz
+   sudo tar -xzf latest.tar.gz
+   sudo chown -R www-data:www-data /var/www/html/wordpress
+   sudo mv /var/www/html/wordpress/wp-config-sample.php /var/www/html/wordpress/wp-config.php
+   ```
+
+3. Edit the WordPress configuration file:
+
+   ```bash
+   sudo nano /var/www/html/wordpress/wp-config.php
+   ```
+
+   Update the database connection settings with the MySQL details you created earlier.
+
+   ```php
+   define('DB_NAME', 'wordpress');
+   define('DB_USER', 'wordpressuser');
+   define('DB_PASSWORD', 'your_password');
+   define('DB_HOST', 'mysql-ec2-public-ip');
+   ```
+
+4. Set the necessary permissions:
+
+   ```bash
+   sudo chown -R www-data:www-data /var/www/html/wordpress
+   ```
+
+
+
+**Step 4: Start the Services**
+
+1. Start Apache on the WordPress EC2 instance:
+
+   ```bash
+   sudo systemctl start apache2
+   sudo systemctl enable apache2
+   ```
+
+2. Start MySQL on the MySQL EC2 instance:
+
+   ```bash
+   sudo systemctl start mysql
+   sudo systemctl enable mysql
+   ```
+
+**Step 5: Access WordPress**
+
+You can access your WordPress site by opening your web browser and navigating to the public IP address or domain name of your WordPress EC2 instance.
+
+This setup separates the web server and the database server on different EC2 instances, ensuring a more secure and scalable environment. Make sure to secure your instances and keep them updated regularly for security.
